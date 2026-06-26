@@ -1,0 +1,357 @@
+{
+  "info": {
+    "name": "Property Booking API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "property_id", "value": "" },
+    { "key": "room_id", "value": "" },
+    { "key": "booking_id", "value": "" },
+    { "key": "booking_id_2", "value": "" },
+    { "key": "next_cursor", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Properties",
+      "item": [
+        {
+          "name": "POST - Create Property (Hotel)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('property_id', res.data.id);",
+                  "  console.log('property_id saved:', res.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/properties",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grand Hyatt Jakarta\",\n  \"city\": \"Jakarta\",\n  \"address\": \"Jl. Sudirman No.1, Jakarta\",\n  \"type\": \"HOTEL\",\n  \"rating\": 4.5\n}"
+            }
+          }
+        },
+        {
+          "name": "POST - Create Property (Villa)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/properties",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Villa Ubud Bali\",\n  \"city\": \"Bali\",\n  \"address\": \"Jl. Monkey Forest, Ubud\",\n  \"type\": \"VILLA\",\n  \"rating\": 4.8\n}"
+            }
+          }
+        },
+        {
+          "name": "GET - List All Properties",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/properties"
+          }
+        },
+        {
+          "name": "GET - Filter by City (Jakarta)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties?city=Jakarta",
+              "host": ["{{base_url}}"],
+              "path": ["properties"],
+              "query": [{ "key": "city", "value": "Jakarta" }]
+            }
+          }
+        },
+        {
+          "name": "GET - Filter by Type + MinRating",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties?type=HOTEL&minRating=4",
+              "host": ["{{base_url}}"],
+              "path": ["properties"],
+              "query": [
+                { "key": "type", "value": "HOTEL" },
+                { "key": "minRating", "value": "4" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Load batch pertama (limit 5)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.meta && res.meta.nextCursor) {",
+                  "  pm.collectionVariables.set('next_cursor', res.meta.nextCursor);",
+                  "  console.log('nextCursor saved:', res.meta.nextCursor);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties?limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["properties"],
+              "query": [{ "key": "limit", "value": "5" }]
+            }
+          }
+        },
+        {
+          "name": "GET - Load more (cursor dari response sebelumnya)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties?limit=5&cursor={{next_cursor}}",
+              "host": ["{{base_url}}"],
+              "path": ["properties"],
+              "query": [
+                { "key": "limit", "value": "5" },
+                { "key": "cursor", "value": "{{next_cursor}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Detail Property (with Rooms)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/properties/{{property_id}}"
+          }
+        },
+        {
+          "name": "[ERROR] GET - Property Not Found (404)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/properties/00000000-0000-0000-0000-000000000000"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Rooms",
+      "item": [
+        {
+          "name": "POST - Create Room (Deluxe)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('room_id', res.data.id);",
+                  "  console.log('room_id saved:', res.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/properties/{{property_id}}/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Deluxe King Room\",\n  \"capacity\": 2,\n  \"pricePerNight\": 500000,\n  \"totalUnit\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "POST - Create Room (Budget)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/properties/{{property_id}}/rooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Standard Twin Room\",\n  \"capacity\": 2,\n  \"pricePerNight\": 250000,\n  \"totalUnit\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "GET - List Rooms by Property",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/properties/{{property_id}}/rooms"
+          }
+        },
+        {
+          "name": "[ERROR] GET - Property Not Found (404)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/properties/00000000-0000-0000-0000-000000000000/rooms"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Bookings",
+      "item": [
+        {
+          "name": "POST - Booking 2 malam (tanpa coupon)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('booking_id', res.data.id);",
+                  "  console.log('booking_id saved:', res.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"customerName\": \"John Doe\",\n  \"customerEmail\": \"john@example.com\",\n  \"checkInDate\": \"2026-07-01\",\n  \"checkOutDate\": \"2026-07-03\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST - Booking 3 malam (auto discount 10%)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "  pm.collectionVariables.set('booking_id_2', res.data.id);",
+                  "  console.log('booking_id_2 saved:', res.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"customerName\": \"Jane Smith\",\n  \"customerEmail\": \"jane@example.com\",\n  \"checkInDate\": \"2026-08-01\",\n  \"checkOutDate\": \"2026-08-04\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST - Booking 3 malam + coupon NEWUSER10",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"customerName\": \"Alice\",\n  \"customerEmail\": \"alice@example.com\",\n  \"checkInDate\": \"2026-09-01\",\n  \"checkOutDate\": \"2026-09-04\",\n  \"couponCode\": \"NEWUSER10\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST - Booking 1 malam + coupon STAYCATION50",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"customerName\": \"Bob\",\n  \"customerEmail\": \"bob@example.com\",\n  \"checkInDate\": \"2026-10-01\",\n  \"checkOutDate\": \"2026-10-02\",\n  \"couponCode\": \"STAYCATION50\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET - Booking Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/bookings/{{booking_id}}"
+          }
+        },
+        {
+          "name": "POST - Pay Booking (PENDING → PAID)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/bookings/{{booking_id}}/pay"
+          }
+        },
+        {
+          "name": "POST - Cancel Booking (PENDING → CANCELLED)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/bookings/{{booking_id_2}}/cancel"
+          }
+        },
+        {
+          "name": "[ERROR] Pay booking yang sudah PAID (400)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/bookings/{{booking_id}}/pay"
+          }
+        },
+        {
+          "name": "[ERROR] Cancel booking yang sudah PAID (400)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/bookings/{{booking_id}}/cancel"
+          }
+        },
+        {
+          "name": "[ERROR] Coupon tidak valid (404)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"customerName\": \"Test\",\n  \"customerEmail\": \"test@example.com\",\n  \"checkInDate\": \"2026-11-01\",\n  \"checkOutDate\": \"2026-11-03\",\n  \"couponCode\": \"INVALIDCODE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[ERROR] checkOut sebelum checkIn (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"customerName\": \"Test\",\n  \"customerEmail\": \"test@example.com\",\n  \"checkInDate\": \"2026-11-05\",\n  \"checkOutDate\": \"2026-11-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "[ERROR] Room tidak ditemukan (404)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/bookings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"00000000-0000-0000-0000-000000000000\",\n  \"customerName\": \"Test\",\n  \"customerEmail\": \"test@example.com\",\n  \"checkInDate\": \"2026-11-01\",\n  \"checkOutDate\": \"2026-11-03\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
